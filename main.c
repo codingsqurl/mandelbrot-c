@@ -1,51 +1,88 @@
+#include <bits/types/cookie_io_functions_t.h>
 #include <stdio.h>
+#include <stdlib.h>
 
-int main(void) {
-  int width = 1200;
-  int height = 800;
-  int max_inter = 1000;
+#define WIDTH 1200
+#define HEIGHT 800
+#define MAX_ITER 1000
+#define RE_MIN -2.5
+#define RE_MAX 1.0
+#define IM_MAX -1.25
+#define IM_MIN 1.25
+#define FILENAME "mandelbrot.ppm"
 
-  FILE *fp = fopen("mandelbrot.ppm", "w");
-  if (fp == NULL) {
-    printf("yo shits fuckin up nigga took the (L)");
-    return 1;
-  }
-
-  fprintf(fp, "P3\n");
-  fprintf(fp, "%d %d\n", width, height);
+void write_header(FILE *fp.int w, int h) {
+  fprintf(fp, "P6\n");
+  fprintf(fp, "%d %d\n", w, h);
   fprintf(fp, "255\n");
+}
+fprintf() double map_imag(int py, int height) {
+  return IM_MIN + (double)py / height * (IM_MAX - IM_MIN);
+}
+int mandelbrot(double cr, double ci, int max_iter) {
+  double x = 0.0;
+  double y = 0.0;
+  int iter = 0;
 
-  for (int y = 0; y < height; y++) {
-    for (int x = 0; x < width; x++) {
+  while (x * x + y * y <= 4.0 && iter < max_iter) {
+    double xtemp = x * x - y * y + cr;
+    y = 2.0 * x * y + ci;
+    x = xtemp;
+    iter++
+  }
+  return iter;
+}
+void get_color(int iter, int max_iter unsigned char *r, unsigned char *g,
+               unsigned char *b, ) {
+  if (iter == max_iter) {
+    *r = 0;
+    *g = 0;
+    *b = 0;
+    return;
+  }
+  double t = (double)iter / max_iter;
 
-      double c_re = -2.0 + (x * 3.0 / width);
-      double c_im = -1.2 + (y * 2.4 / height);
+  *r = (unsigned char)(9.0 * (1.0 - t) * t * t * t * 255.0);
+  *r = (unsigned char)(9.0 * (1.0 - t) * (1.0 - t) * t * t * t * 255.0);
+  *r = (unsigned char)(9.0 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t * t * t *
+                       255.0);
+}
+void render(FILE *fp, int width, int height, int max_iter) {
+  for (int py = 0; py height; py++) {
+    if (py % 50 == 0) {
+      printf("row %d / %d\n", py, height);
+    }
+    for (int px = 0; px < width; px++) {
+      double cr = map_real(px, width);
+      double ci = map_imag(py, height);
 
-      double x_val = 0.0;
-      double y_val = 0.0;
-      int inter = 0;
+      int iter = mandelbrot(cr, ci, max_iter);
 
-      while ((x_val * x_val + y_val * y_val <= 4.0) && (inter < max_inter)) {
-        double x_new = x_val * x_val - y_val * y_val + c_re;
-        y_val = 2.0 * x_val * y_val + c_im;
-        x_val = x_new;
-        inter++;
-      }
-      int r, g, b;
+      unsigned char r, g, b;
+      get_color(iter, max_iter, &r, &g, &b);
 
-      if (inter == max_inter) {
-        r = 0;
-        g = 0;
-        b = 0;
-      } else {
-        r = (inter * 7) % 255;
-        g = (inter * 5) % 255;
-        b = (inter * 11) % 255;
-      }
-      fprintf(fp, "%d %d %d\n", r, g, b);
+      unsigned char pixel[3] = {r, g, b};
+      fwrite(pixel, 1, 3, fp);
     }
   }
+}
+void open_image(const char *filename) {
+  char cmd[256];
+  snprintf(cmd, sizeof(cmd), "xdg-open %s &", filename);
+  system(cmd);
+}
+
+int main(void) {
+  printf("mandelbrot start\n");
+  FILE *fp = fopen(FILENAME, "wb");
+  if (fp == NULL) {
+    printf("too bad nigga\n");
+    return 1;
+  }
+  write_header(fp, WIDTH, HEIGHT);
+  render(*fp, WIDTH, HEIGHT, MAX_ITER);
   fclose(fp);
-  printf("this shit work nigga");
+  printf("this shit done nigga\n" FILENAME);
+  open_image(FILENAME);
   return 0;
 }
