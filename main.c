@@ -13,6 +13,9 @@ void write_header(FILE *fp, int w, int h) {
   fprintf(fp, "%d %d\n", w, h);
   fprintf(fp, "255\n");
 }
+double map_real(int py, int width) {
+  return IM_MIN + (double)py / width * (IM_MAX - IM_MIN);
+}
 double map_imag(int py, int height) {
   return IM_MIN + (double)py / height * (IM_MAX - IM_MIN);
 }
@@ -38,8 +41,8 @@ void get_color(int iter, int max_iter, unsigned char *r, unsigned char *g,
   }
   double t = (double)iter / max_iter;
   *r = (unsigned char)(9.0 * (1.0 - t) * t * t * t * 255.0);
-  *r = (unsigned char)(9.0 * (1.0 - t) * (1.0 - t) * t * t * t * 255.0);
-  *r = (unsigned char)(9.0 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t * t * t *
+  *r = (unsigned char)(15.0 * (1.0 - t) * (1.0 - t) * t * t * t * 255.0);
+  *r = (unsigned char)(8.5 * (1.0 - t) * (1.0 - t) * (1.0 - t) * t * t * t *
                        255.0);
 }
 void render(FILE *fp, int width, int height, int max_iter) {
